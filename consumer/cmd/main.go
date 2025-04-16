@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/jokopitoyosby/rabbitmq-gateway/consumer"
 	"github.com/jokopitoyosby/rabbitmq-gateway/models"
@@ -27,6 +29,35 @@ func main() {
 			return nil
 		},
 	}
-	consumer.NewConsumer("config.json", "position_exchange", []string{"positions"}, callbacks).Start()
+	config, err := parseConfig("config.json")
+
+	if err != nil {
+		log.Fatalf("Failed to parse config: %v", err)
+	}
+	consumer.NewConsumer(config.Host, config.Port, config.Username, config.Password, "position_exchange", []string{"positions"}, callbacks).Start()
 	select {}
+}
+
+// parseConfig membaca dan mem-parsing file konfigurasi JSON
+func parseConfig(configFile string) (models.Config, error) {
+	var config models.Config
+
+	file, err := os.ReadFile(configFile)
+	if err != nil {
+		return config, fmt.Errorf("error reading config file: %v", err)
+	}
+
+	err = json.Unmarshal(file, &config)
+	if err != nil {
+		return config, fmt.Errorf("error parsing config JSON: %v", err)
+	}
+
+	if config.Host == "" {
+		return config, errors.New("host is required in config")
+	}
+	if config.Port == 0 {
+		config.Port = 5672 // default port
+	}
+
+	return config, nil
 }

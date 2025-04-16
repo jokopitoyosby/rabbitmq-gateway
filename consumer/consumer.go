@@ -14,7 +14,11 @@ import (
 )
 
 type RabbitMQConsumer struct {
-	config    models.Config
+	//config    models.Config
+	host      string
+	port      int
+	username  string
+	password  string
 	exchange  string
 	queues    []string
 	callbacks map[string]func([]byte) error
@@ -29,14 +33,20 @@ type RabbitMQConsumer struct {
 	notify  chan struct{}
 }
 
-func NewConsumer(configFile, exchange string, queues []string, callbacks map[string]func([]byte) error) *RabbitMQConsumer {
-	config, err := parseConfig(configFile)
+/*
+config, err := parseConfig(configFile)
+
 	if err != nil {
 		log.Fatalf("Failed to parse config: %v", err)
 	}
+*/
+func NewConsumer(host string, port int, username string, password string, exchange string, queues []string, callbacks map[string]func([]byte) error) *RabbitMQConsumer {
 
 	return &RabbitMQConsumer{
-		config:    config,
+		host:      host,
+		port:      port,
+		username:  username,
+		password:  password,
 		exchange:  exchange,
 		queues:    queues,
 		callbacks: callbacks,
@@ -96,10 +106,10 @@ func (c *RabbitMQConsumer) handleReconnect() {
 func (c *RabbitMQConsumer) connect() error {
 	conn, err := amqp.DialConfig(
 		fmt.Sprintf("amqp://%s:%s@%s:%d/",
-			c.config.Username,
-			c.config.Password,
-			c.config.Host,
-			c.config.Port),
+			c.username,
+			c.password,
+			c.host,
+			c.port),
 		amqp.Config{
 			Heartbeat: 10 * time.Second,
 			Locale:    "en_US",
