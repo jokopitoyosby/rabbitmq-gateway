@@ -1,4 +1,4 @@
-package main
+package publisher
 
 import (
 	"encoding/json"
@@ -20,7 +20,6 @@ type Config struct {
 }
 
 type RabbitMQPublisher struct {
-	config   Config
 	exchange string
 	queues   []string
 
@@ -28,20 +27,23 @@ type RabbitMQPublisher struct {
 	channel *amqp.Channel
 	mu      sync.Mutex
 
-	done    chan struct{}
-	wg      sync.WaitGroup
-	isReady bool
-	notify  chan struct{}
+	done     chan struct{}
+	wg       sync.WaitGroup
+	isReady  bool
+	notify   chan struct{}
+	Username string
+	Password string
+	Host     string
+	Port     int
 }
 
-func NewPublisher(configFile, exchange string, queues []string) *RabbitMQPublisher {
-	config, err := parseConfig(configFile)
-	if err != nil {
-		log.Fatalf("Failed to parse config: %v", err)
-	}
+func NewPublisher(username, password, host string, port int, exchange string, queues []string) *RabbitMQPublisher {
 
 	return &RabbitMQPublisher{
-		config:   config,
+		Username: username,
+		Password: password,
+		Host:     host,
+		Port:     port,
 		exchange: exchange,
 		queues:   queues,
 		done:     make(chan struct{}),
@@ -100,10 +102,10 @@ func (p *RabbitMQPublisher) handleReconnect() {
 func (p *RabbitMQPublisher) connect() error {
 	conn, err := amqp.DialConfig(
 		fmt.Sprintf("amqp://%s:%s@%s:%d/",
-			p.config.Username,
-			p.config.Password,
-			p.config.Host,
-			p.config.Port),
+			p.Username,
+			p.Password,
+			p.Host,
+			p.Port),
 		amqp.Config{
 			Heartbeat: 10 * time.Second,
 			Locale:    "en_US",
