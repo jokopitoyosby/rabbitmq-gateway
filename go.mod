@@ -4,7 +4,6 @@ go 1.24.0
 
 require (
 	github.com/IBM/sarama v1.45.1
-	github.com/jokopitoyosby/rabbitmq-gateway v0.0.0-20250416231844-8f0526c0398e
 	github.com/rabbitmq/amqp091-go v1.10.0
 )
 

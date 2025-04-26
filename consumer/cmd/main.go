@@ -5,10 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"message-broker/consumer"
+	"message-broker/models"
 	"os"
-
-	"github.com/jokopitoyosby/rabbitmq-gateway/consumer"
-	"github.com/jokopitoyosby/rabbitmq-gateway/models"
 )
 
 func main() {
